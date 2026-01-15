@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum generation_status {
+  PENDING
+  FAILED
+  COMPLETE
+}
+
+model generations {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  generationId String   @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prompt       String   @db.VarChar(1500)
+  public       Boolean  @default(true)
+  flagged      Boolean  @default(false)
+  nsfw         Boolean  @default(false)
+  imageHeight  Int
+  imageWidth   Int
+  imageUrls    String[] @default([]) @db.VarChar(2048)
+
+  attemptCount  Int       @default(0)
+  lastAttemptAt DateTime?
+  lastError     String?   @db.VarChar(2000)
+
+  coreModel core_models       @default(SD)
+  status    generation_status @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+enum core_models {
+  SD
+  SDXL
+}
